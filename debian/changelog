@@ -1,0 +1,343 @@
+git-cola (1.8.0-1) precise; urgency=low
+
+  * Quick package of git repo
+
+ -- John Vrbanac <john.vrbanac@linux.com>  Mon, 08 Oct 2012 11:32:00 -0600
+ 
+git-cola (1.4.3.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * Update debian/copyright years.
+
+ -- Iulian Udrea <iulian@linux.com>  Thu, 01 Sep 2011 23:56:15 +0100
+
+git-cola (1.4.3.4-1) unstable; urgency=low
+
+  * New upstream release.
+  * Bump Standards-Version to 3.9.2; no changes required.
+
+ -- Iulian Udrea <iulian@linux.com>  Tue, 05 Jul 2011 20:20:28 +0100
+
+git-cola (1.4.3.2-1) unstable; urgency=low
+
+  * New upstream release.
+    + setup.py: Fix installation of translations.  Closes: #619087.
+
+ -- Iulian Udrea <iulian@linux.com>  Mon, 18 Apr 2011 19:46:22 +0100
+
+git-cola (1.4.3-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Iulian Udrea <iulian@linux.com>  Sun, 06 Feb 2011 16:21:23 +0000
+
+git-cola (1.4.3-1) experimental; urgency=low
+
+  * New upstream release.
+    + git-dag beta™ now has a separate display area for displaying commit
+    metadata. This area will soon grow additional functionality such as
+    cherry-picking, branching, etc.
+    + Fixed tests from a previous refactoring.
+    + Guard against ‘diff.external’ configuration by always calling ‘git diff’
+    with the ‘–no-ext-diff’ option
+    (http://github.com/davvid/git-cola/issues/closed#issue/67).
+    + Respect ‘gui.diffcontext’ so that cola’s diff display shows the correct
+    number of context lines.
+  * Use JQuery from the Debian package:
+    - Add libjs-jquery as a dependency.
+    - Add symlink from /usr/share/javascript/jquery/jquery.js to 
+    /usr/share/doc/git-cola/html/_static/jquery.js.
+  * Don't compress objects.inv.  Thanks Michael Fladischer <michael@fladi.at>
+    (Closes: #608752).
+
+ -- Iulian Udrea <iulian@linux.com>  Mon, 03 Jan 2011 13:48:51 +0000
+
+git-cola (1.4.2.5-1) experimental; urgency=low
+
+  * New upstream release.
+    + Clicking on paths in the status widget copies them into the copy/paste
+    buffer for easy middle-clicking into terminals.
+    + Ctrl+C in diff viewer copies the selected diff to the clipboard.
+    + Fixed the disappearing actions buttons on PyQt 4.7.4 as reported by Arch
+    and Ubuntu 10.10. (Launchpad: #660363, #656539)
+    (http://github.com/davvid/git-cola/issues/closed#issue/62).
+    + Fixed mouse interaction with the status widget where some items could
+    not be de-selected.
+    + Removed hard-coded reference to lib/ when calculating Python’s
+    site-packages directory.
+
+ -- Iulian Udrea <iulian@linux.com>  Thu, 28 Oct 2010 16:25:52 +0100
+
+git-cola (1.4.2.4-1) experimental; urgency=low
+
+  * New upstream release.
+    + Removed “single-click to (un)stage” in the status view.
+    + Added ability to create unsigned, annotated tags.
+    + Updated documentation to use cola.git instead of cola.gitcmd.
+  * Change my e-mail address.
+  * Include BSD license text in debian/copyright rather than referencing
+    /usr/share/common-licenses/BSD.
+
+ -- Iulian Udrea <iulian@linux.com>  Sun, 05 Sep 2010 13:31:34 +0100
+
+git-cola (1.4.2.3-1) unstable; urgency=low
+ 
+  * New upstream version.
+  * debian/control: single line synopsis: gui -> GUI.  Closes: #585947.
+  * Bump Standards-Version to 3.9.1 (no changes required).
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Tue, 15 Jun 2010 19:17:53 +0100
+
+git-cola (1.4.2.1-1) unstable; urgency=low
+
+  * New upstream version. 
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Tue, 25 May 2010 21:10:29 +0100
+
+git-cola (1.4.2-1) unstable; urgency=low
+
+  * New upstream version.
+    + See share/doc/relnotes.rst for more information.
+  * Drop setuppy.patch (merged upstream).
+  * Rewrite debian/rules.
+  * Switch to 3.0 (quilt) source format.
+  * Remove README.source.  It is not needed anymore (3.0 (quilt) source
+    format).
+  * Remove quilt build-dependency.
+  * Update debian/copyright years.
+  * Drop fix_doc_file.patch (merged upstream).
+  * Add python-nose to Build-Depends.
+  * Override dh_auto_test.
+  * Bump debhelper version to 7.0.50.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 24 Apr 2010 09:17:19 +0100
+
+git-cola (1.4.1.2-4) unstable; urgency=low
+
+  * Drop the version from the git-core run-time dependency. Closes: #568586
+    (The dependency on git-core (>= 1.5) is intended to exclude git from
+    etch, for example, but unfortunately git from etch has a version number
+    including an epoch.  Since Debian does not support etch-to-squeeze
+    upgrades anyway, it is simpler and more obvious to drop the version 
+    from the dependency.)
+    + Thanks Jonathan Nieder <jrnieder@gmail.com> for the patch.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Wed, 07 Apr 2010 15:44:23 +0100
+
+git-cola (1.4.1.2-3) unstable; urgency=low
+
+  * debian/control:
+    - git-difftool has been included in git-core and so it's irrelevant
+    to mention it in the package description.
+      + Thanks Jonathan Nieder <jrnieder@gmail.com> for spotting this.
+  * Add fix_doc_file.patch (Closes: #565766); (LP: #539269).
+      + cola/resources.py:26: use git-cola.txt instead of the non-existing
+      git-cola.html file.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Fri, 19 Mar 2010 18:01:00 +0000
+
+git-cola (1.4.1.2-2) unstable; urgency=low
+
+  * debian/control:
+    - Drop the version from the git-core dependency (Closes: #568586).
+      + Thanks Jonathan Nieder <jrnieder@gmail.com>
+    - Add ${misc:Depends}.
+    - DM-Upload-Allowed: yes
+    - Bump Std-Ver to 3.8.4 (no changes required).
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sun, 28 Feb 2010 19:59:22 +0000
+
+git-cola (1.4.1.2-1) unstable; urgency=low
+
+  * New upstream version.
+  * debian/watch: remove "-src"
+  * Update debian/copyright.
+  * Add quilt.
+  * Add setuppy.patch.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sun, 03 Jan 2010 13:30:17 +0000
+
+git-cola (1.4.1-1) unstable; urgency=low
+
+  * New upstream version.
+    + Loads of fixes.  See the ChangeLog for details.
+  * Update debian/copyright.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 05 Dec 2009 11:02:56 +0000
+
+git-cola (1.4.0.4-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fixed:
+    - W: git-cola: non-standard-dir-in-usr usr/libexec/
+    - W: git-cola: file-in-unusual-dir usr/libexec/git-cola/ssh-askpass
+  * debian/control:
+    - Remove XB-Python-Version: ${python:Versions} as it's not needed
+      with pysupport.
+    - B-D-I on python instead of python-all-dev.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sun, 15 Nov 2009 16:14:41 +0000
+
+git-cola (1.4.0-1) unstable; urgency=low
+
+  * New upstream version (Closes: #554849).
+    - Updates since v1.3.9
+      + The main GUI is flexible and user-configurable
+      + Individual widgets can be detached and rearranged arbitrarily
+      + Add an interface for creating tags
+      + Provide a fallback SSH_ASKPASS implementation to prompt for SSH 
+        passwords on fetch/push/pull
+      + Inherit the window manager's font settings
+      + The commit message editor displays the current row/column and warns
+        when lines get too long
+      + The cola classic widget displays upstream changes
+      + 'git cola --classic' launches cola classic in standalone mode
+      + Provide more information in log messages
+      + Miscellaneous PyQt4 bug fixes and workarounds
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 31 Oct 2009 15:15:31 +0000
+
+git-cola (1.3.9.14-1) unstable; urgency=low
+
+  * New upstream version.
+  * debian/control: 
+    - Bump Standards-Version to 3.8.3; no changes required.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 15 Aug 2009 23:37:40 +0100
+
+git-cola (1.3.8-1) unstable; urgency=low
+
+  * New upstream version.
+    + setup.py: launch `pyuic4` with 'sh -c' to work around old pyuic4 bugs.
+      Older versions of pyuic4 were implemented as a shell script instead
+      of as python script.  Interestingly, an older version existed
+      that didn't have a '#!/bin/sh' shebang line.
+      Use 'sh -c' to accommodate both current and older, buggy pyuic4s.
+  * debian/control:
+    - Add xxdiff to Recommends (LP: #386259).
+    - Add python-sphinx and rsync to Build-Depends-Indep.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 14 Jun 2009 11:11:00 +0100
+
+git-cola (1.3.7.45-2) unstable; urgency=low
+
+  * Remove git-difftool.1 symlink.  dpkg is trying to overwrite
+    `/usr/share/man/man1/git-difftool.1.gz', which is also in package
+    git-core (Closes: #528128).
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Mon, 11 May 2009 06:34:40 +0100
+
+git-cola (1.3.7.45-1) unstable; urgency=low
+
+  * New upstream version.
+    + inotify: fix a bug when exiting cola
+    + docs: remove git-difftool.txt and update git-cola.txt
+    + models: do not flag deleted files as modified 
+    + setup.py: add the private cola.models module
+    + observable: use the current model's notify value when cloning
+    + models: fix a bug in clone()
+  * Remove {cola,git-difftool}.pod and manpages.
+  * Add links file.
+  * Update rules.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Thu, 07 May 2009 06:44:29 +0100
+
+git-cola (1.3.7.21-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fix symlink (/usr/bin/git-difftool--helper).
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Tue, 28 Apr 2009 18:28:44 +0100
+
+git-cola (1.3.7.6-1) unstable; urgency=low
+
+  * New upstream version.
+    + install private modules to /usr/share (Closes: #519972)
+  * debian/control:
+    - change Section to vcs
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Thu, 23 Apr 2009 06:37:14 +0100
+
+git-cola (1.3.5.44-1) unstable; urgency=low
+
+  * New upstream version.
+    + cola.jsonpickle wasn't exception-safe and was breaking
+      help('modules') 
+      (Closes: #519971)
+  * Remove debian/dirs.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Wed, 18 Mar 2009 05:51:51 +0000
+
+git-cola (1.3.5.42-1) unstable; urgency=low
+
+  * New upstream version.
+  * debian/control:
+    - Bump Standards-Version to 3.8.1.0 (no changes needed).
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sun, 15 Mar 2009 19:39:37 +0000
+
+git-cola (1.3.5.28-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 21 Feb 2009 17:01:32 +0000
+
+git-cola (1.3.5-1) unstable; urgency=low
+
+  * New upstream version.
+    + git-difftool-helper is a GIT_EXTERNAL_DIFF-compatible diff tool
+      launcher. It supports kdiff3, tkdiff, xxdiff, meld, opendiff, emerge,
+      ecmerge, vimdiff, gvimdiff, and custom user-configurable tools.
+  * debian/rules:
+    - make git-difftool-helper.1 be a symlink to git-difftool.1
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Fri, 23 Jan 2009 07:12:28 +0000
+
+git-cola (1.3.4.4-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Fri, 02 Jan 2009 15:01:00 +0000
+
+git-cola (1.3.2.5-1) unstable; urgency=low
+
+  * New upstream version.
+    - inotify: fix a bug introduced when removing the defaults
+      module (Closes: #506993)
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Thu, 27 Nov 2008 06:48:00 +0000
+
+git-cola (1.3.2-1) unstable; urgency=low
+
+  * New upstream version.
+  * debian/rules:
+    - merge 'rm -f' into dh_clean
+    - rename build-indep target to build-stamp
+    - call dh_install in the install target instead of binary-indep
+    - remove commented lines
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 18 Nov 2008 19:10:10 +0000
+
+git-cola (1.3.0.3-1) unstable; urgency=low
+
+  * New upstream version.
+  * debian/patches: drop 01_cola-desktop.dpatch (included upstream)
+  * debian/control: 
+    - add Vcs-* fields
+    - add Recommends: gitk
+    - remove dpatch from Build-Depends (not needed anymore)
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Fri, 07 Nov 2008 18:34:52 +0000
+
+git-cola (1.2.68-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Sat, 01 Nov 2008 13:08:13 +0000
+
+git-cola (1.2.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #498656)
+
+ -- Iulian Udrea <iulian@ubuntu.com>  Thu, 11 Sep 2008 22:21:30 +0100
+

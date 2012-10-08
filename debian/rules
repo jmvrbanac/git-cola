@@ -1,0 +1,58 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+package=git-cola
+
+override_dh_auto_test:
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	$(MAKE) all doc
+	touch $@
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean build-stamp
+	[ ! -f Makefile ] || $(MAKE) clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_install
+	dh_installdirs
+	$(MAKE) DESTDIR=$(CURDIR)/debian/$(package) prefix=/usr install install-doc install-html
+	find . -name "*.pyc" -delete
+
+# Build architecture-independent files here.
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_installman
+	dh_installmenu
+	dh_pysupport
+	dh_link /usr/share/javascript/jquery/jquery.js \
+		/usr/share/doc/git-cola/html/_static/jquery.js
+	dh_strip
+	dh_compress -Xobjects.inv
+	dh_fixperms
+	dh_perl
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+# Build architecture-dependent files here.
+binary-arch: build install
+
+binary: binary-indep binary-arch
+
+.PHONY: build clean binary-indep binary-arch binary install override_dh_auto_test
