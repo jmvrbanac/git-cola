@@ -158,6 +158,13 @@ class CommitMessageEditor(QtGui.QWidget):
         # Allow tab to jump from the summary to the description
         self.setTabOrder(self.summary, self.description)
 
+    def set_initial_size(self):
+        self.setMaximumHeight(133)
+        QtCore.QTimer.singleShot(1, self.restore_size)
+
+    def restore_size(self):
+        self.setMaximumHeight(2 ** 13)
+
     def focus_summary(self):
         self.summary.setFocus()
 
@@ -382,7 +389,7 @@ class CommitMessageEditor(QtGui.QWidget):
         if not sha1s:
             return
         sha1 = sha1s[0]
-        cmds.do(cmds.LoadCommitMessage, sha1)
+        cmds.do(cmds.LoadPreviousMessage, sha1)
 
 
 class CommitSummaryLineEdit(HintedLineEdit):

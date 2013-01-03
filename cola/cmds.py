@@ -6,6 +6,9 @@ from fnmatch import fnmatch
 
 from cStringIO import StringIO
 
+from PyQt4 import QtCore
+from PyQt4.QtCore import SIGNAL
+
 import cola
 from cola import compat
 from cola import i18n
@@ -35,6 +38,15 @@ class BaseCommand(object):
     def name(self):
         """Return this command's name."""
         return self.__class__.__name__
+
+    def prepare(self):
+        """Prepare to run the command.
+
+        This is performed in a separate thread before do()
+        is invoked.
+
+        """
+        pass
 
     def do(self):
         raise NotImplementedError('%s.do() is unimplemented' % self.name())
@@ -247,8 +259,9 @@ class Checkout(Command):
 
 class CheckoutBranch(Checkout):
     """Checkout a branch."""
-    def __init__(self, branch, checkout_branch=True):
-        Checkout.__init__(self, [branch])
+    def __init__(self, branch):
+        args = [branch]
+        Checkout.__init__(self, args, checkout_branch=True)
 
 
 class CherryPick(Command):
@@ -740,16 +753,26 @@ class SetDiffText(Command):
 
 class ShowUntracked(Command):
     """Show an untracked file."""
-    # We don't actually do anything other than set the mode right now.
-    # TODO check the mimetype for the file and handle things
-    # generically.
     def __init__(self, filenames):
         Command.__init__(self)
+        self.filenames = filenames
         self.new_mode = self.model.mode_untracked
+        self.new_diff_text = ''
+
+    def prepare(self):
+        filenames = self.filenames
+        self.new_diff_text = self.diff_text_for(filenames[0])
+
+    def diff_text_for(self, filename):
+        size = _config.get('cola.readsize', 1024 * 2)
         try:
-            self.new_diff_text = utils.slurp(filenames[0])
+            result = utils.slurp(filename, size=size)
         except:
-            self.new_diff_text = ''
+            result = ''
+
+        if len(result) == size:
+            result += '...'
+        return result
 
 
 class SignOff(Command):
@@ -995,10 +1018,79 @@ def run(cls, *args, **opts):
 
 def do(cls, *args, **opts):
     """Run a command in-place"""
+    do_cmd(cls(*args, **opts))
+
+
+def do_cmd(cmd):
     try:
-        cls(*args, **opts).do()
+        cmd.do()
     except StandardError, e:
         exc_type, exc_value, exc_tb = sys.exc_info()
         details = traceback.format_exception(exc_type, exc_value, exc_tb)
         details = '\n'.join(details)
-        Interaction.critical('Oops', message=e.msg, details=details)
+        msg = _exception_message(e)
+        Interaction.critical('Oops', message=msg, details=details)
+
+
+def bg(parent, cls, *args, **opts):
+    """
+    Returns a callback that runs a command
+
+    If the caller of run() provides args or opts then those are
+    used instead of the ones provided by the invoker of the callback.
+
+    """
+    def runner(*local_args, **local_opts):
+        if args or opts:
+            background(parent, cls, *args, **opts)
+        else:
+            background(parent, cls, *local_args, **local_opts)
+
+    return runner
+
+
+# Holds a reference to background tasks to avoid PyQt4 segfaults
+ALL_TASKS = set()
+
+
+def background(parent, cls, *args, **opts):
+    cmd = cls(*args, **opts)
+    task = AsyncCommand(parent, cmd)
+    ALL_TASKS.add(task)
+    QtCore.QThreadPool.globalInstance().start(task)
+
+
+
+class RunCommand(QtCore.QObject):
+    def __init__(self, cmd, task, parent):
+        QtCore.QObject.__init__(self, parent)
+        self.cmd = cmd
+        self.task = task
+        self.connect(self, SIGNAL('command_ready'), self.do)
+
+    def run(self):
+        self.cmd.prepare()
+        self.emit(SIGNAL('command_ready'))
+
+    def do(self):
+        do_cmd(self.cmd)
+        try:
+            ALL_TASKS.remove(self.task)
+        except:
+            pass
+
+
+class AsyncCommand(QtCore.QRunnable):
+    def __init__(self, parent, cmd):
+        QtCore.QRunnable.__init__(self)
+        self.runner = RunCommand(cmd, self, parent)
+
+    def run(self):
+        self.runner.run()
+
+
+def _exception_message(e):
+    if hasattr(e, 'msg'):
+        return e.msg
+    else:
+        return str(e)

@@ -217,10 +217,10 @@ def dirname(path):
     return path.rsplit('/', 1)[0]
 
 
-def slurp(path):
+def slurp(path, size=-1):
     """Slurps a filepath into a string."""
     fh = open(core.encode(path))
-    slushy = core.read(fh)
+    slushy = core.read(fh, size=size)
     fh.close()
     return core.decode(slushy)
 
@@ -461,6 +461,7 @@ class ProgressIndicator(object):
 
 
 def start_command(args, cwd=None, shell=False, add_env=None,
+                  universal_newlines=False,
                   stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                   stderr=subprocess.PIPE):
     """Start the given command, and return a subprocess object.
@@ -473,8 +474,8 @@ def start_command(args, cwd=None, shell=False, add_env=None,
         env = os.environ.copy()
         env.update(add_env)
     return subprocess.Popen(args, bufsize=1, stdin=stdin, stdout=stdout,
-                            stderr=stderr, cwd=cwd, shell=shell,
-                            env=env, universal_newlines=True)
+                            stderr=stderr, cwd=cwd, shell=shell, env=env,
+                            universal_newlines=universal_newlines)
 
 
 def run_command(args, cwd=None, shell=False, add_env=None,

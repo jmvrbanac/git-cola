@@ -7,7 +7,6 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 from PyQt4.QtCore import SIGNAL
 
-import cola
 from cola import cmds
 from cola import core
 from cola import gitcmds
@@ -17,7 +16,6 @@ from cola import gitcfg
 from cola import prefs
 from cola import qtutils
 from cola import qtcompat
-from cola import qt
 from cola import resources
 from cola import settings
 from cola import stash
@@ -29,14 +27,13 @@ from cola.classic import classic_widget
 from cola.dag import git_dag
 from cola.git import git
 from cola.interaction import Interaction
-from cola.qt import create_button
 from cola.qt import create_dock
 from cola.qt import create_menu
 from cola.qtutils import add_action
 from cola.qtutils import connect_action
 from cola.qtutils import connect_action_bool
-from cola.qtutils import connect_button
 from cola.qtutils import tr
+from cola.widgets import action
 from cola.widgets import cfgactions
 from cola.widgets import editremotes
 from cola.widgets import remote
@@ -65,7 +62,7 @@ class MainView(MainWindow):
 
         # Internal field used by import/export_state().
         # Change this whenever dockwidgets are removed.
-        self.widget_version = 1
+        self.widget_version = 2
 
         # Keeps track of merge messages we've seen
         self.merge_message_hash = ''
@@ -86,21 +83,15 @@ class MainView(MainWindow):
 
         # "Actions" widget
         self.actionsdockwidget = create_dock('Action', self)
-        self.actionsdockwidgetcontents = qt.QFlowLayoutWidget(self)
-        layout = self.actionsdockwidgetcontents.layout()
-        self.stage_button = create_button(text='Stage', layout=layout)
-        self.unstage_button = create_button(text='Unstage', layout=layout)
-        self.rescan_button = create_button(text='Rescan', layout=layout)
-        self.fetch_button = create_button(text='Fetch...', layout=layout)
-        self.push_button = create_button(text='Push...', layout=layout)
-        self.pull_button = create_button(text='Pull...', layout=layout)
-        self.stash_button = create_button(text='Stash...', layout=layout)
-        layout.addStretch()
+        self.actionsdockwidgetcontents = action.ActionButtons(self)
         self.actionsdockwidget.setWidget(self.actionsdockwidgetcontents)
+        self.actionsdockwidget.toggleViewAction().setChecked(False)
+        self.actionsdockwidget.hide()
 
         # "Repository Status" widget
+        self.statuswidget = StatusWidget(self)
         self.statusdockwidget = create_dock('Status', self)
-        self.statusdockwidget.setWidget(StatusWidget(self))
+        self.statusdockwidget.setWidget(self.statuswidget)
 
         # "Commit Message Editor" widget
         self.position_label = QtGui.QLabel()
@@ -118,6 +109,8 @@ class MainView(MainWindow):
         self.logwidget = LogWidget()
         self.logdockwidget = create_dock('Console', self)
         self.logdockwidget.setWidget(self.logwidget)
+        self.logdockwidget.toggleViewAction().setChecked(False)
+        self.logdockwidget.hide()
 
         # "Diff Viewer" widget
         self.diffdockwidget = create_dock('Diff', self)
@@ -377,18 +370,20 @@ class MainView(MainWindow):
         self.setMenuBar(self.menubar)
 
         # Arrange dock widgets
-        top = Qt.TopDockWidgetArea
+        left = Qt.LeftDockWidgetArea
+        right = Qt.RightDockWidgetArea
         bottom = Qt.BottomDockWidgetArea
 
-        self.addDockWidget(top, self.commitdockwidget)
+        self.addDockWidget(left, self.commitdockwidget)
         if self.classic_dockable:
-            self.addDockWidget(top, self.classicdockwidget)
-        self.addDockWidget(top, self.statusdockwidget)
-        self.addDockWidget(top, self.actionsdockwidget)
-        self.addDockWidget(bottom, self.logdockwidget)
-        if self.classic_dockable:
+            self.addDockWidget(left, self.classicdockwidget)
             self.tabifyDockWidget(self.classicdockwidget, self.commitdockwidget)
-        self.tabifyDockWidget(self.logdockwidget, self.diffdockwidget)
+        self.addDockWidget(left, self.diffdockwidget)
+        self.addDockWidget(bottom, self.actionsdockwidget)
+        self.addDockWidget(bottom, self.logdockwidget)
+        self.tabifyDockWidget(self.actionsdockwidget, self.logdockwidget)
+
+        self.addDockWidget(right, self.statusdockwidget)
 
         # Listen for model notifications
         model.add_observer(model.message_updated, self._update_view)
@@ -398,16 +393,6 @@ class MainView(MainWindow):
 
         # Set a default value
         self.show_cursor_position(1, 0)
-
-        # Add button callbacks
-        connect_button(self.rescan_button, cmds.run(cmds.RescanAndRefresh))
-        connect_button(self.fetch_button, remote.fetch)
-        connect_button(self.push_button, remote.push)
-        connect_button(self.pull_button, remote.pull)
-        connect_button(self.stash_button, stash.stash)
-
-        connect_button(self.stage_button, self.stage)
-        connect_button(self.unstage_button, self.unstage)
 
         self.connect(self.menu_open_recent, SIGNAL('aboutToShow()'),
                      self.build_recent_menu)
@@ -430,7 +415,8 @@ class MainView(MainWindow):
                 self.actionsdockwidget,
         )
         # Restore saved settings
-        qtutils.apply_state(self)
+        if not qtutils.apply_state(self):
+            self.set_initial_size()
 
         self.statusdockwidget.widget().setFocus()
 
@@ -440,6 +426,10 @@ class MainView(MainWindow):
 
         Interaction.log(version.git_version_str() +
                         '\ncola version ' + version.version())
+
+    def set_initial_size(self):
+        self.statuswidget.set_initial_size()
+        self.commitmsgeditor.set_initial_size()
 
     # Qt overrides
     def closeEvent(self, event):
@@ -544,9 +534,10 @@ class MainView(MainWindow):
         """Imports data for save/restore"""
         # 1 is the widget version; change when widgets are added/removed
         MainWindow.apply_state(self, state)
-        qtutils.apply_window_state(self, state, 1)
+        result = qtutils.apply_window_state(self, state, self.widget_version)
         for widget in self.dockwidgets:
             widget.titleBarWidget().update_tooltips()
+        return result
 
     def export_state(self):
         """Exports data for save/restore"""
@@ -555,37 +546,41 @@ class MainView(MainWindow):
 
     def setup_dockwidget_tools_menu(self):
         # Hotkeys for toggling the dock widgets
+        if utils.is_darwin():
+            optkey = 'Meta'
+        else:
+            optkey = 'Ctrl'
         dockwidgets = (
-            ('Alt+0', self.logdockwidget),
-            ('Alt+1', self.commitdockwidget),
-            ('Alt+2', self.statusdockwidget),
-            ('Alt+3', self.diffdockwidget),
-            ('Alt+4', self.actionsdockwidget),
+            (optkey + '+0', self.logdockwidget),
+            (optkey + '+1', self.commitdockwidget),
+            (optkey + '+2', self.statusdockwidget),
+            (optkey + '+3', self.diffdockwidget),
+            (optkey + '+4', self.actionsdockwidget),
         )
         for shortcut, dockwidget in dockwidgets:
             # Associate the action with the shortcut
-            action = dockwidget.toggleViewAction()
-            action.setShortcut(shortcut)
-            self.tools_menu.addAction(action)
+            toggleview = dockwidget.toggleViewAction()
+            toggleview.setShortcut(shortcut)
+            self.tools_menu.addAction(toggleview)
             def showdock(show, dockwidget=dockwidget):
                 if show:
                     dockwidget.raise_()
                     dockwidget.widget().setFocus()
                 else:
                     self.setFocus()
-            self.addAction(action)
-            connect_action_bool(action, showdock)
+            self.addAction(toggleview)
+            connect_action_bool(toggleview, showdock)
 
             # Create a new shortcut Shift+<shortcut> that gives focus
-            action = QtGui.QAction(self)
-            action.setShortcut('Shift+' + shortcut)
+            toggleview = QtGui.QAction(self)
+            toggleview.setShortcut('Shift+' + shortcut)
             def focusdock(dockwidget=dockwidget, showdock=showdock):
                 if dockwidget.toggleViewAction().isChecked():
                     showdock(True)
                 else:
                     dockwidget.toggleViewAction().trigger()
-            self.addAction(action)
-            connect_action(action, focusdock)
+            self.addAction(toggleview)
+            connect_action(toggleview, focusdock)
 
     def preferences(self):
         return prefs.preferences(model=self.prefs_model, parent=self)
@@ -594,22 +589,6 @@ class MainView(MainWindow):
         ref = git.rev_parse('HEAD')
         shortref = ref[:7]
         GitArchiveDialog.save(ref, shortref, self)
-
-    def stage(self):
-        """Stage selected files, or all files if no selection exists."""
-        paths = cola.selection_model().unstaged
-        if not paths:
-            cmds.do(cmds.StageModified)
-        else:
-            cmds.do(cmds.Stage, paths)
-
-    def unstage(self):
-        """Unstage selected files, or all files if no selection exists."""
-        paths = cola.selection_model().staged
-        if not paths:
-            cmds.do(cmds.UnstageAll)
-        else:
-            cmds.do(cmds.Unstage, paths)
 
     def dragEnterEvent(self, event):
         """Accepts drops"""
